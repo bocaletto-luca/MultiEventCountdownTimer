@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Event Countdown & Timer</title>
+  <meta name="author" content="Bocaletto Luca">
+  <meta name="description" content="Manage multiple countdowns and stopwatches with audio/visual alerts, JSON import/export, and a responsive modern UI.">
+  <meta name="keywords" content="countdown, timer, stopwatch, events, JSON export, import, webapp, responsive">
+  <link rel="canonical" href="https://github.com/bocaletto-luca/MultiEventTimer">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --text: #1f2937;
+      --border: #d1d5db;
+      --radius: 8px;
+      --gap: 1rem;
+      --font: 'Roboto', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex; flex-direction: column; align-items: center;
+      padding: var(--gap);
+    }
+    header {
+      width: 100%; max-width: 900px;
+      margin-bottom: var(--gap);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    h1 { font-size: 1.5rem; font-weight: 500; }
+    #controls {
+      display: flex; gap: .5rem;
+    }
+    #controls button {
+      padding: .5rem 1rem;
+      background: var(--primary);
+      border: none; border-radius: var(--radius);
+      color: #fff; cursor: pointer;
+      transition: background .2s;
+    }
+    #controls button:hover {
+      background: var(--primary-dark);
+    }
+    #file-input { display: none; }
+
+    main {
+      width: 100%; max-width: 900px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--gap);
+    }
+
+    /* New Event Form */
+    #new-event {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: var(--gap);
+      display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+    }
+    #new-event input, #new-event select, #new-event button {
+      font: inherit;
+      padding: .5rem; border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    #new-event input[type="text"] { flex: 2; min-width: 120px; }
+    #new-event select { flex: 1; min-width: 100px; }
+    #new-event input[type="datetime-local"] { flex: 2; }
+    #new-event button {
+      background: var(--primary); border: none; color: #fff;
+      cursor: pointer; transition: background .2s;
+    }
+    #new-event button:hover { background: var(--primary-dark); }
+
+    /* Events List */
+    #events {
+      display: flex; flex-direction: column; gap: var(--gap);
+    }
+    .event-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: var(--gap);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .info {
+      flex: 1; min-width: 150px;
+    }
+    .info h3 {
+      margin-bottom: .25rem; font-size: 1rem; font-weight: 500;
+    }
+    .info p {
+      font-size: .95rem; margin-bottom: .25rem;
+    }
+    .controls {
+      display: flex; gap: .5rem;
+    }
+    .controls button {
+      padding: .4rem .8rem;
+      background: var(--primary); border: none; border-radius: var(--radius);
+      color: #fff; cursor: pointer; font-size: .85rem;
+      transition: background .2s;
+    }
+    .controls button:hover { background: var(--primary-dark); }
+    .ended { opacity: 0.6; }
+
+    /* Responsive */
+    @media(max-width:600px) {
+      #new-event { flex-direction: column; }
+      .controls { flex-wrap: wrap; }
+    }
+
+    footer {
+      margin-top: var(--gap); font-size: .8rem; text-align: center;
+    }
+    footer a { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Multi-Event Countdown & Timer</h1>
+    <div id="controls">
+      <button id="export-btn">Export JSON</button>
+      <button id="import-btn">Import JSON</button>
+      <input type="file" id="file-input" accept=".json">
+    </div>
+  </header>
+
+  <main>
+    <!-- Add New Event -->
+    <form id="new-event">
+      <input type="text" id="event-name" placeholder="Event name" required>
+      <select id="event-type">
+        <option value="countdown">Countdown</option>
+        <option value="stopwatch">Stopwatch</option>
+      </select>
+      <input type="datetime-local" id="event-time">
+      <button type="submit">Add</button>
+    </form>
+
+    <!-- Events Container -->
+    <div id="events"></div>
+  </main>
+
+  <footer>
+    © 2025 Bocaletto Luca —  
+    <a href="https://github.com/bocaletto-luca/MultiEventTimer" target="_blank">GitHub</a> —  
+    Licensed GPLv3
+  </footer>
+
+  <script>
+    // helpers
+    const now = () => new Date().getTime();
+    function beep() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      o.frequency.value = 750;
+      o.connect(ctx.destination);
+      o.start();
+      setTimeout(() => o.stop(), 200);
+    }
+
+    // data model
+    let events = JSON.parse(localStorage.getItem('mevt_events')||'[]');
+
+    // save to localStorage
+    function save() {
+      localStorage.setItem('mevt_events', JSON.stringify(events));
+    }
+
+    // create event card in DOM
+    function renderEvents() {
+      const container = document.getElementById('events');
+      container.innerHTML = '';
+      events.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        if (ev.ended) card.classList.add('ended');
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        const title = document.createElement('h3');
+        title.textContent = ev.name;
+        const display = document.createElement('p');
+        display.id = 'disp-'+ev.id;
+        info.append(title, display);
+
+        const ctrl = document.createElement('div');
+        ctrl.className = 'controls';
+        // common buttons
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => {
+          events = events.filter(x=>x.id!==ev.id);
+          save(); renderEvents();
+        };
+        ctrl.appendChild(del);
+
+        if (ev.type === 'countdown') {
+          // no extra controls
+        } else {
+          // stopwatch controls
+          const start = document.createElement('button');
+          start.textContent = ev.running ? 'Pause' : 'Start';
+          start.onclick = () => {
+            ev.running = !ev.running;
+            if (ev.running) ev.startTime = now() - (ev.elapsed||0);
+            save(); renderEvents();
+          };
+          ctrl.appendChild(start);
+
+          const reset = document.createElement('button');
+          reset.textContent = 'Reset';
+          reset.onclick = () => {
+            ev.elapsed = 0; ev.running = false; save(); renderEvents();
+          };
+          ctrl.appendChild(reset);
+        }
+
+        card.append(info, ctrl);
+        container.appendChild(card);
+      });
+    }
+
+    // clock tick
+    function tick() {
+      const t = now();
+      events.forEach(ev => {
+        const disp = document.getElementById('disp-'+ev.id);
+        if (!disp) return;
+        if (ev.type==='countdown') {
+          const diff = ev.target - t;
+          if (diff<=0) {
+            ev.ended = true;
+            disp.textContent = '00:00:00';
+            if (!ev.beeped) { beep(); ev.beeped = true; }
+          } else {
+            const h = Math.floor(diff/3600000);
+            const m = Math.floor(diff%3600000/60000);
+            const s = Math.floor(diff%60000/1000);
+            disp.textContent =
+              String(h).padStart(2,'0')+':' +
+              String(m).padStart(2,'0')+':' +
+              String(s).padStart(2,'0');
+          }
+        } else {
+          if (ev.running) {
+            ev.elapsed = t - ev.startTime;
+            save();
+          }
+          const e = ev.elapsed || 0;
+          const h = Math.floor(e/3600000);
+          const m = Math.floor(e%3600000/60000);
+          const s = Math.floor(e%60000/1000);
+          disp.textContent =
+            String(h).padStart(2,'0')+':' +
+            String(m).padStart(2,'0')+':' +
+            String(s).padStart(2,'0');
+        }
+      });
+    }
+    setInterval(tick, 250);
+
+    // add new event
+    document.getElementById('new-event').onsubmit = e => {
+      e.preventDefault();
+      const name = document.getElementById('event-name').value.trim();
+      const type = document.getElementById('event-type').value;
+      const id = Date.now().toString();
+      const ev = { id, name, type, ended: false, beeped: false };
+      if (type==='countdown') {
+        const dt = document.getElementById('event-time').value;
+        const ts = new Date(dt).getTime();
+        ev.target = ts;
+      } else {
+        ev.elapsed = 0; ev.running = false; ev.startTime = 0;
+      }
+      events.push(ev);
+      save();
+      renderEvents();
+      e.target.reset();
+    };
+
+    // import/export
+    document.getElementById('export-btn').onclick = () => {
+      const blob = new Blob([JSON.stringify(events, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'events.json'; a.click();
+      URL.revokeObjectURL(url);
+    };
+    document.getElementById('import-btn').onclick = () => {
+      document.getElementById('file-input').click();
+    };
+    document.getElementById('file-input').onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (Array.isArray(data)) {
+            events = data;
+            save(); renderEvents();
+          } else throw 0;
+        } catch {
+          alert('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // init
+    renderEvents();
+  </script>
+</body>
+</html>
