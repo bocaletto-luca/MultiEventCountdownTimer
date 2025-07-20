@@ -9,60 +9,187 @@
   <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:#f0f4f8;--card:#fff;--primary:#2563eb;--primary-dark:#1e40af;
-      --text:#1f2937;--border:#d1d5db;--radius:8px;--gap:1rem;
-      --flash:#fde047;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --text: #1f2937;
+      --border: #d1d5db;
+      --alert-green: #6ee7b7;
+      --radius: 8px;
+      --gap: 1rem;
     }
-    *,*:before,*:after{box-sizing:border-box}
-    body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);
-      color:var(--text);display:flex;flex-direction:column;min-height:100vh;}
-    header{background:var(--primary);color:#fff;padding:var(--gap);
-      text-align:center;}
-    header h1{margin:0;font-size:1.5rem;}
-    main{flex:1;padding:var(--gap);max-width:900px;margin:0 auto;
-      display:grid;gap:var(--gap);}
-    #new-event{background:var(--card);border:1px solid var(--border);
-      border-radius:var(--radius);padding:var(--gap);display:flex;
-      flex-wrap:wrap;gap:.5rem;}
-    #new-event input,#new-event select,#new-event button{font:inherit;
-      padding:.5rem;border:1px solid var(--border);border-radius:var(--radius);}
-    #new-event input[type="text"]{flex:2;min-width:120px;}
-    #new-event select{flex:1;min-width:100px;}
-    #new-event input[type="datetime-local"]{flex:2;min-width:180px;}
-    #new-event button{background:var(--primary);color:#fff;border:none;
-      cursor:pointer;transition:background .2s;}
-    #new-event button:hover{background:var(--primary-dark);}
-    #events{display:flex;flex-direction:column;gap:var(--gap);}
-    .event-card{background:var(--card);border:1px solid var(--border);
-      border-radius:var(--radius);padding:var(--gap);display:flex;
-      justify-content:space-between;align-items:center;flex-wrap:wrap;
-      position:relative;overflow:hidden;}
-    .event-card.flash{animation:flash 1s ease-in-out infinite;}
-    @keyframes flash{
-      0%,100%{background:var(--card)}50%{background:var(--flash)}
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    .info{flex:1;min-width:150px;}
-    .info h3{margin:.25rem 0;font-weight:500;}
-    .info p{margin:.25rem 0;font-size:1.25rem;font-variant-numeric:tabular-nums;}
-    .controls{display:flex;gap:.5rem;margin-top:.5rem;}
-    .controls button{padding:.4rem .8rem;border:none;border-radius:var(--radius);
-      background:var(--primary);color:#fff;cursor:pointer;font-size:.9rem;
-      transition:background .2s;}
-    .controls button:hover{background:var(--primary-dark);}
-    #io-controls{display:flex;gap:.5rem;justify-content:center;
-      margin:var(--gap) 0;}
-    #io-controls button{background:var(--primary);color:#fff;border:none;
-      padding:.5rem 1rem;border-radius:var(--radius);cursor:pointer;
-      transition:background .2s;}
-    #io-controls button:hover{background:var(--primary-dark);}
-    #file-input{display:none;}
-    footer{background:var(--primary);color:#fff;text-align:center;
-      padding:.75rem;flex-shrink:0;}
-    footer a{color:#fff;text-decoration:underline;}
+    header {
+      background: var(--primary);
+      color: #fff;
+      text-align: center;
+      padding: var(--gap);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    main {
+      flex: 1;
+      max-width: 900px;
+      margin: var(--gap) auto;
+      display: grid;
+      gap: var(--gap);
+      padding: 0 var(--gap);
+    }
+    /* New Event Form */
+    #new-event {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--gap);
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+    }
+    #new-event input,
+    #new-event select,
+    #new-event button {
+      font: inherit;
+      padding: .5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    #new-event input[type="text"] {
+      flex: 2;
+      min-width: 120px;
+    }
+    #new-event select {
+      flex: 1;
+      min-width: 100px;
+    }
+    #new-event input[type="datetime-local"] {
+      flex: 2;
+      min-width: 180px;
+    }
+    #new-event button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #new-event button:hover {
+      background: var(--primary-dark);
+    }
+    /* Events List */
+    #events {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+    .event-card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--gap);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      overflow: hidden;
+    }
+    .event-card.flash {
+      animation: flash-green 1s ease-in-out infinite;
+    }
+    @keyframes flash-green {
+      0%,100% { background: var(--card); }
+      50% { background: var(--alert-green); }
+    }
+    .info {
+      flex: 1;
+      min-width: 150px;
+    }
+    .info h3 {
+      margin: .25rem 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    .info p {
+      margin: .25rem 0;
+      font-size: 1.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .controls {
+      display: flex;
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+    .controls button {
+      padding: .4rem .8rem;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .2s;
+    }
+    .controls button:hover {
+      background: var(--primary-dark);
+    }
+    /* Import/Export */
+    #io-controls {
+      display: flex;
+      justify-content: center;
+      gap: .5rem;
+      margin: var(--gap) 0;
+    }
+    #io-controls button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: .5rem 1rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #io-controls button:hover {
+      background: var(--primary-dark);
+    }
+    #file-input {
+      display: none;
+    }
+    footer {
+      background: var(--primary);
+      color: #fff;
+      text-align: center;
+      padding: .75rem;
+    }
+    footer a {
+      color: #fff;
+      text-decoration: underline;
+    }
+    @media(max-width:600px){
+      #new-event { flex-direction: column; }
+      .controls { width: 100%; justify-content: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <header><h1>Multi-Event Countdown & Timer</h1></header>
+
+  <header>
+    <h1>Multi-Event Countdown & Timer</h1>
+  </header>
+
   <main>
     <form id="new-event">
       <input type="text" id="event-name" placeholder="Event name" required>
@@ -71,7 +198,7 @@
         <option value="stopwatch">Stopwatch</option>
       </select>
       <input type="datetime-local" id="event-time">
-      <button type="submit">Add</button>
+      <button type="submit">Add Event</button>
     </form>
 
     <div id="events"></div>
@@ -82,6 +209,7 @@
       <input type="file" id="file-input" accept=".json">
     </div>
   </main>
+
   <footer>
     © 2025 Bocaletto Luca — 
     <a href="https://github.com/bocaletto-luca/MultiEventCountdownTimer" target="_blank">
@@ -90,113 +218,175 @@
   </footer>
 
   <script>
-    const now =()=>Date.now();
-    function beep(){
-      const c=new (AudioContext||webkitAudioContext)();
-      const o=c.createOscillator();
-      o.frequency.value=750; o.connect(c.destination);
-      o.start(); setTimeout(()=>o.stop(),200);
+    const now = () => Date.now();
+
+    function beep() {
+      const ctx = new (AudioContext||webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.frequency.value = 750;
+      osc.connect(ctx.destination);
+      osc.start();
+      setTimeout(() => osc.stop(), 200);
     }
-    let events=JSON.parse(localStorage.getItem('mevt_events')||'[]');
-    function save(){localStorage.setItem('mevt_events',JSON.stringify(events));}
-    function renderEvents(){
-      const ctn=document.getElementById('events');
-      ctn.innerHTML='';
-      events.forEach(ev=>{
-        const card=document.createElement('div');
-        card.className='event-card';
-        if(ev.flash)card.classList.add('flash');
-        const info=document.createElement('div'),ctrl=document.createElement('div');
-        info.className='info';ctrl.className='controls';
-        const h3=document.createElement('h3'),p=document.createElement('p');
-        h3.textContent=ev.name;p.id='disp-'+ev.id;info.append(h3,p);
-        const del=document.createElement('button');del.textContent='Delete';
-        del.onclick=()=>{events=events.filter(x=>x.id!==ev.id);save();renderEvents();};
-        ctrl.append(del);
-        if(ev.type==='stopwatch'){
-          const sb=document.createElement('button');
-          sb.textContent=ev.running?'Pause':'Start';
-          sb.onclick=()=>{
-            ev.running=!ev.running;
-            if(ev.running)ev.start=now()-(ev.elapsed||0);
-            save();renderEvents();
+
+    // Load events from storage
+    let events = JSON.parse(localStorage.getItem('mevt_events')||'[]');
+
+    function save() {
+      localStorage.setItem('mevt_events', JSON.stringify(events));
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('events');
+      container.innerHTML = '';
+      events.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        if (ev.flash) card.classList.add('flash');
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        const title = document.createElement('h3');
+        title.textContent = ev.name;
+        const display = document.createElement('p');
+        display.id = 'disp-' + ev.id;
+        info.append(title, display);
+
+        const ctrls = document.createElement('div');
+        ctrls.className = 'controls';
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => {
+          events = events.filter(e => e.id !== ev.id);
+          save(); renderEvents();
+        };
+        ctrls.append(del);
+
+        if (ev.type === 'stopwatch') {
+          const start = document.createElement('button');
+          start.textContent = ev.running ? 'Pause' : 'Start';
+          start.onclick = () => {
+            ev.running = !ev.running;
+            if (ev.running) ev.start = now() - (ev.elapsed||0);
+            save(); renderEvents();
           };
-          const rs=document.createElement('button');
-          rs.textContent='Reset';
-          rs.onclick=()=>{
-            ev.elapsed=0;ev.running=false;save();renderEvents();
+          const reset = document.createElement('button');
+          reset.textContent = 'Reset';
+          reset.onclick = () => {
+            ev.elapsed = 0; ev.running = false;
+            save(); renderEvents();
           };
-          ctrl.append(sb,rs);
+          ctrls.append(start, reset);
         }
-        card.append(info,ctrl);ctn.append(card);
+
+        card.append(info, ctrls);
+        container.append(card);
       });
     }
-    setInterval(()=>{
-      const t=now();
-      events.forEach(ev=>{
-        const d=document.getElementById('disp-'+ev.id);
-        if(!d)return;
-        if(ev.type==='countdown'){
-          const diff=ev.target-t;
-          if(diff<=0){
-            ev.ended=true;
-            if(!ev.beeped){beep();ev.beeped=true;
-              ev.flash=true;setTimeout(()=>{ev.flash=false;save();renderEvents();},10000);}
-            d.textContent='00:00:00';
+
+    // Tick loop
+    setInterval(() => {
+      const t = now();
+      events.forEach(ev => {
+        const disp = document.getElementById('disp-' + ev.id);
+        if (!disp) return;
+        if (ev.type === 'countdown') {
+          const diff = ev.target - t;
+          if (diff <= 0) {
+            ev.ended = true;
+            if (!ev.beeped) {
+              beep();
+              ev.beeped = true;
+              ev.flash = true;
+              setTimeout(() => {
+                ev.flash = false;
+                save();
+                renderEvents();
+              }, 10000);
+            }
+            disp.textContent = '00:00:00';
           } else {
-            const h=Math.floor(diff/3600000),
-                  m=Math.floor((diff%3600000)/60000),
-                  s=Math.floor((diff%60000)/1000);
-            d.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            const h = Math.floor(diff/3600000);
+            const m = Math.floor((diff%3600000)/60000);
+            const s = Math.floor((diff%60000)/1000);
+            disp.textContent =
+              `${String(h).padStart(2,'0')}:` +
+              `${String(m).padStart(2,'0')}:` +
+              `${String(s).padStart(2,'0')}`;
           }
         } else {
-          if(ev.running){ev.elapsed=t-ev.start;save();}
-          const e=ev.elapsed||0,
-                h=Math.floor(e/3600000),
-                m=Math.floor((e%3600000)/60000),
-                s=Math.floor((e%60000)/1000);
-          d.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          if (ev.running) {
+            ev.elapsed = t - ev.start;
+            save();
+          }
+          const e = ev.elapsed || 0;
+          const h = Math.floor(e/3600000);
+          const m = Math.floor((e%3600000)/60000);
+          const s = Math.floor((e%60000)/1000);
+          disp.textContent =
+            `${String(h).padStart(2,'0')}:` +
+            `${String(m).padStart(2,'0')}:` +
+            `${String(s).padStart(2,'0')}`;
         }
       });
-    },250);
+    }, 250);
 
-    document.getElementById('new-event').onsubmit=e=>{
+    // Add new event
+    document.getElementById('new-event').onsubmit = e => {
       e.preventDefault();
-      const n=document.getElementById('event-name').value.trim(),
-            t=document.getElementById('event-type').value;
-      const id=Date.now().toString();
-      const ev={id,name:n,type:t,ended:false,beeped:false,flash:false};
-      if(t==='countdown'){
-        const dt=document.getElementById('event-time').value;
-        ev.target=new Date(dt).getTime();
+      const name = document.getElementById('event-name').value.trim();
+      const type = document.getElementById('event-type').value;
+      const id   = Date.now().toString();
+      const ev   = { id, name, type, ended:false, beeped:false, flash:false };
+      if (type === 'countdown') {
+        const dt = document.getElementById('event-time').value;
+        ev.target = new Date(dt).getTime();
       } else {
-        ev.elapsed=0;ev.running=false;ev.start=0;
+        ev.elapsed = 0;
+        ev.running = false;
+        ev.start   = 0;
       }
-      events.push(ev);save();renderEvents();e.target.reset();
+      events.push(ev);
+      save();
+      renderEvents();
+      e.target.reset();
     };
 
-    document.getElementById('export-btn').onclick=()=>{
-      const b=new Blob([JSON.stringify(events,null,2)],{type:'application/json'});
-      const u=URL.createObjectURL(b),a=document.createElement('a');
-      a.href=u;a.download='events.json';a.click();URL.revokeObjectURL(u);
+    // Export JSON
+    document.getElementById('export-btn').onclick = () => {
+      const blob = new Blob([JSON.stringify(events,null,2)], { type:'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = 'events.json'; a.click();
+      URL.revokeObjectURL(url);
     };
-    document.getElementById('import-btn').onclick=()=>{
+
+    // Import JSON
+    document.getElementById('import-btn').onclick = () => {
       document.getElementById('file-input').click();
     };
-    document.getElementById('file-input').onchange=e=>{
-      const f=e.target.files[0];
-      if(!f)return;
-      const r=new FileReader();
-      r.onload=()=>{
-        try{
-          const data=JSON.parse(r.result);
-          if(Array.isArray(data)){events=data;save();renderEvents();}
-          else throw 0;
-        }catch{alert('Invalid JSON');}
+    document.getElementById('file-input').onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (Array.isArray(data)) {
+            events = data;
+            save();
+            renderEvents();
+          } else {
+            alert('Invalid JSON format');
+          }
+        } catch {
+          alert('Could not read JSON');
+        }
       };
-      r.readAsText(f);
+      reader.readAsText(file);
     };
 
+    // Initialize
     renderEvents();
   </script>
 </body>
