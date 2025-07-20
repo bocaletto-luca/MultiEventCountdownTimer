@@ -6,6 +6,8 @@
   <title>Multi-Event Countdown & Timer | Bocaletto Luca</title>
   <meta name="description" content="Manage multiple countdowns & stopwatches with audio/visual alerts, JSON import/export, responsive UI.">
   <meta name="author" content="Bocaletto Luca">
+  <meta name="keywords" content="countdown,timer,stopwatch,events,JSON,import,export,responsive">
+  <link rel="canonical" href="https://github.com/bocaletto-luca/MultiEventCountdownTimer">
   <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -19,9 +21,8 @@
       --radius: 8px;
       --gap: 1rem;
     }
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
@@ -36,17 +37,18 @@
       padding: var(--gap);
     }
     header h1 {
-      margin: 0;
       font-size: 1.5rem;
       font-weight: 600;
+      margin: 0;
     }
     main {
       flex: 1;
       max-width: 900px;
+      width: 100%;
       margin: var(--gap) auto;
+      padding: 0 var(--gap);
       display: grid;
       gap: var(--gap);
-      padding: 0 var(--gap);
     }
     /* New Event Form */
     #new-event {
@@ -112,7 +114,7 @@
     }
     @keyframes flash-green {
       0%,100% { background: var(--card); }
-      50% { background: var(--alert-green); }
+      50%      { background: var(--alert-green); }
     }
     .info {
       flex: 1;
@@ -165,9 +167,8 @@
     #io-controls button:hover {
       background: var(--primary-dark);
     }
-    #file-input {
-      display: none;
-    }
+    #file-input { display: none; }
+    /* Footer */
     footer {
       background: var(--primary);
       color: #fff;
@@ -178,7 +179,7 @@
       color: #fff;
       text-decoration: underline;
     }
-    @media(max-width:600px){
+    @media(max-width:600px) {
       #new-event { flex-direction: column; }
       .controls { width: 100%; justify-content: flex-start; }
     }
@@ -221,7 +222,7 @@
     const now = () => Date.now();
 
     function beep() {
-      const ctx = new (AudioContext||webkitAudioContext)();
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
       const osc = ctx.createOscillator();
       osc.frequency.value = 750;
       osc.connect(ctx.destination);
@@ -229,7 +230,6 @@
       setTimeout(() => osc.stop(), 200);
     }
 
-    // Load events from storage
     let events = JSON.parse(localStorage.getItem('mevt_events')||'[]');
 
     function save() {
@@ -246,14 +246,18 @@
 
         const info = document.createElement('div');
         info.className = 'info';
+
         const title = document.createElement('h3');
         title.textContent = ev.name;
+
         const display = document.createElement('p');
         display.id = 'disp-' + ev.id;
+
         info.append(title, display);
 
         const ctrls = document.createElement('div');
         ctrls.className = 'controls';
+
         const del = document.createElement('button');
         del.textContent = 'Delete';
         del.onclick = () => {
@@ -284,20 +288,21 @@
       });
     }
 
-    // Tick loop
     setInterval(() => {
       const t = now();
       events.forEach(ev => {
         const disp = document.getElementById('disp-' + ev.id);
         if (!disp) return;
+
         if (ev.type === 'countdown') {
           const diff = ev.target - t;
           if (diff <= 0) {
-            ev.ended = true;
             if (!ev.beeped) {
               beep();
               ev.beeped = true;
               ev.flash = true;
+              save();
+              renderEvents();
               setTimeout(() => {
                 ev.flash = false;
                 save();
@@ -306,13 +311,13 @@
             }
             disp.textContent = '00:00:00';
           } else {
-            const h = Math.floor(diff/3600000);
-            const m = Math.floor((diff%3600000)/60000);
-            const s = Math.floor((diff%60000)/1000);
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
             disp.textContent =
-              `${String(h).padStart(2,'0')}:` +
-              `${String(m).padStart(2,'0')}:` +
-              `${String(s).padStart(2,'0')}`;
+              String(h).padStart(2,'0') + ':' +
+              String(m).padStart(2,'0') + ':' +
+              String(s).padStart(2,'0');
           }
         } else {
           if (ev.running) {
@@ -320,24 +325,23 @@
             save();
           }
           const e = ev.elapsed || 0;
-          const h = Math.floor(e/3600000);
-          const m = Math.floor((e%3600000)/60000);
-          const s = Math.floor((e%60000)/1000);
+          const h = Math.floor(e / 3600000);
+          const m = Math.floor((e % 3600000) / 60000);
+          const s = Math.floor((e % 60000) / 1000);
           disp.textContent =
-            `${String(h).padStart(2,'0')}:` +
-            `${String(m).padStart(2,'0')}:` +
-            `${String(s).padStart(2,'0')}`;
+            String(h).padStart(2,'0') + ':' +
+            String(m).padStart(2,'0') + ':' +
+            String(s).padStart(2,'0');
         }
       });
     }, 250);
 
-    // Add new event
     document.getElementById('new-event').onsubmit = e => {
       e.preventDefault();
       const name = document.getElementById('event-name').value.trim();
       const type = document.getElementById('event-type').value;
       const id   = Date.now().toString();
-      const ev   = { id, name, type, ended:false, beeped:false, flash:false };
+      const ev   = { id, name, type, flash:false, beeped:false };
       if (type === 'countdown') {
         const dt = document.getElementById('event-time').value;
         ev.target = new Date(dt).getTime();
@@ -352,7 +356,6 @@
       e.target.reset();
     };
 
-    // Export JSON
     document.getElementById('export-btn').onclick = () => {
       const blob = new Blob([JSON.stringify(events,null,2)], { type:'application/json' });
       const url  = URL.createObjectURL(blob);
@@ -361,7 +364,6 @@
       URL.revokeObjectURL(url);
     };
 
-    // Import JSON
     document.getElementById('import-btn').onclick = () => {
       document.getElementById('file-input').click();
     };
@@ -380,13 +382,12 @@
             alert('Invalid JSON format');
           }
         } catch {
-          alert('Could not read JSON');
+          alert('Could not parse JSON');
         }
       };
       reader.readAsText(file);
     };
 
-    // Initialize
     renderEvents();
   </script>
 </body>
